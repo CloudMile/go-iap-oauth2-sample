@@ -1,15 +1,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 
-	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
-	"golang.org/x/oauth2/jwt"
 )
 
 // GAEWebURI is GAE target URI
@@ -22,18 +21,12 @@ var (
 )
 
 func main() {
+	ctx := context.Background()
 	data, _ := ioutil.ReadFile(SeviceAccountKeyPath)
 
-	cfg, _ := google.JWTConfigFromJSON(data, "")
-	jwtConfig := &jwt.Config{
-		Email:         cfg.Email,
-		PrivateKey:    cfg.PrivateKey,
-		TokenURL:      cfg.TokenURL,
-		Subject:       cfg.Email,
-		PrivateClaims: map[string]interface{}{"target_audience": ClientID},
-	}
+	cfg, _ := google.JWTConfigFromJSON(data, ClientID)
 
-	tokenSource := jwtConfig.TokenSource(oauth2.NoContext)
+	tokenSource := cfg.TokenSource(ctx)
 	token, _ := tokenSource.Token()
 	idToken := fmt.Sprintf("%s", token.Extra("id_token"))
 
